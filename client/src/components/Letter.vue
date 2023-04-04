@@ -11,6 +11,9 @@ const props = defineProps({
   },
   random:{
     type: Boolean,
+  },
+  inv:{
+    type:Number
   }
 })
 const position = {
@@ -18,7 +21,7 @@ const position = {
 }
 function move(e){
   // e.dataTransfer.setData('text/plain', e.target.id);
-  e.dataTransfer.setData("text", props.value);
+  e.dataTransfer.setData("text", JSON.stringify(props));
   e.currentTarget.style.backgroundColor = 'black';
   self.attrs.draggable = "false"
 }

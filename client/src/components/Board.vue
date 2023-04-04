@@ -1,7 +1,8 @@
 <script setup>
+import { createConditionalExpression } from '@vue/compiler-core';
 import Cell from './Cell.vue'
 import Letter from './Letter.vue'
-import { getCurrentInstance, reactive } from 'vue'
+import { getCurrentInstance, reactive, ref } from 'vue'
 
   var self = getCurrentInstance()
   // self.store = reactive({
@@ -15,12 +16,14 @@ import { getCurrentInstance, reactive } from 'vue'
 
   function drop(e){
     e.preventDefault();
-    var data = e.dataTransfer.getData("text");
+    const data = JSON.parse(e.dataTransfer.getData("text"));
+    let letter = data.value;
+    var original_slot = data.inv
     let i  = Number(e.target.getAttribute('col'))
     var j = Number(e.target.getAttribute('row'))
     let id =(i*15)+j
-    
-    board[id] = data
+    console.log(letter)
+    board[id] = letter
     if(!word_start){
       word_start = [i,j]
     }else if(incolumn == undefined){
@@ -40,7 +43,6 @@ import { getCurrentInstance, reactive } from 'vue'
         next_letters.push( i)
       }
     }
-    console.log(next_letters)
     
   }
   function allowDrop(e){

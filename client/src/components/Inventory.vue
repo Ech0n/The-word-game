@@ -14,7 +14,7 @@ function generate_lettr()
         <table>
             <template v-for="i in 7">
                 <td class="inv_cell" id="i_{{ i }}">
-                    <Letter :value="generate_lettr()" draggable="true" > </Letter>
+                    <Letter :value="generate_lettr()" draggable="true" :inv="i"  > </Letter>
                 </td>
             </template>
         </table>
