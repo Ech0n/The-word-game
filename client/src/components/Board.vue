@@ -2,7 +2,9 @@
 import { createConditionalExpression } from '@vue/compiler-core';
 import Cell from './Cell.vue'
 import Letter from './Letter.vue'
-import { getCurrentInstance, reactive, ref } from 'vue'
+
+import { getCurrentInstance, reactive } from 'vue'
+import axios from 'axios'
 
   var self = getCurrentInstance()
   // self.store = reactive({
@@ -84,6 +86,12 @@ import { getCurrentInstance, reactive, ref } from 'vue'
     }
   }
   function submit(){
+    axios.post('https://localhost:8080/word',{
+      start:word_start,
+      letters:next_letters,
+      column:incolumn,
+    })
+      .then(response => (console.log(response)))
     next_letters = []
     incolumn= null
     word_start = null
