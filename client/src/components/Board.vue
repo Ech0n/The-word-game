@@ -27,22 +27,22 @@ import axios from 'axios'
     console.log(letter)
     board[id] = letter
     if(!word_start){
-      word_start = [i,j,letter]
+      word_start = [i,j,letter.charCodeAt(0)]
     }else if(incolumn == undefined){
       if(i==word_start[0]){
         incolumn = true;
-        next_letters[j] = letter;
+        next_letters[j] = letter.charCodeAt(0);
       }else if(j==word_start[1]){
         incolumn = false
-        next_letters[i] = letter
+        next_letters[i] = letter.charCodeAt(0)
       }else{
         console.log("INWALID PLACEMENET")
       }
     }else{
       if(incolumn){
-        next_letters[j] = letter;
+        next_letters[j] = letter.charCodeAt(0);
       }else{
-        next_letters[i] = letter
+        next_letters[i] = letter.charCodeAt(0)
       }
     }
     
