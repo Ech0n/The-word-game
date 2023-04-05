@@ -13,7 +13,7 @@ import axios from 'axios'
   const board = reactive( Array.apply(null, Array(15*15)).map(function () {return 0;}))
   var lastreadletter = ''
   var word_start = undefined
-  var next_letters = []
+  var next_letters =  Array.apply(null, Array(15)).map(function () {return 0;})
   var incolumn = undefined
 
   function drop(e){
@@ -27,22 +27,22 @@ import axios from 'axios'
     console.log(letter)
     board[id] = letter
     if(!word_start){
-      word_start = [i,j]
+      word_start = [i,j,letter]
     }else if(incolumn == undefined){
       if(i==word_start[0]){
         incolumn = true;
-        next_letters.push(j)
+        next_letters[j] = letter;
       }else if(j==word_start[1]){
         incolumn = false
-        next_letters.push( i)
+        next_letters[i] = letter
       }else{
         console.log("INWALID PLACEMENET")
       }
     }else{
       if(incolumn){
-        next_letters.push(j)
+        next_letters[j] = letter;
       }else{
-        next_letters.push( i)
+        next_letters[i] = letter
       }
     }
     
@@ -62,37 +62,56 @@ import axios from 'axios'
   }
   function reset(e){
     if(incolumn==undefined&&word_start){
-      board[(word_start[0]*15)+word_start[1]] = null
+      board[(word_start[0]*15)+word_start[1]] = 0
       word_start = undefined
     }
     else if(incolumn==true){
       let i = word_start[0];
-      for(let j = 0;j<next_letters.length;j++){
-        board[(i*15)+next_letters[j]] = null
+      for(let j = 0;j<15;j++){
+        console.log(j,next_letters[j],next_letters[j]!=0)
+        if(next_letters[j]!=0){
+          board[(i*15)+j] = 0
+        }
       }
-      next_letters = []
+      next_letters = next_letters.map(function () {return 0;})
       incolumn= null
-      board[(word_start[0]*15)+word_start[1]] = null
+      board[(word_start[0]*15)+word_start[1]] = 0
       word_start = undefined
     }if(incolumn==false){
       let j = word_start[1];
-      for(let i = 0;i<next_letters.length;i++){
-        board[next_letters[i]*15+j] = null
+      for(let i = 0;i<15;i++){
+        if(next_letters[i]!=0){
+          board[i*15+j] = 0
+        }
       }
-      next_letters = []
+      next_letters =  next_letters.map(function () {return 0;})
       incolumn= null
-      board[(word_start[0]*15)+word_start[1]] = null
+      board[(word_start[0]*15)+word_start[1]] = 0
       word_start = undefined
     }
   }
   function submit(){
-    axios.post('https://localhost:8080/word',{
-      start:word_start,
+    let rowcolnum = 0;
+    if(!incolumn){
+      next_letters[word_start[0]] = word_start[2]
+      rowcolnum = word_start[1]
+      incolumn = false
+    }else{
+      next_letters[word_start[1]] = word_start[2]
+      rowcolnum = word_start[0]
+    }
+    console.log({
       letters:next_letters,
       column:incolumn,
+      num:rowcolnum
     })
-      .then(response => (console.log(response)))
-    next_letters = []
+    console.log(next_letters,incolumn)
+    axios.post('http://localhost:8080/word',{
+      letters:next_letters,
+      column:incolumn,
+      num:rowcolnum
+    }).then(response => {console.log(response)})
+    next_letters = next_letters.map(function () {return 0;})
     incolumn= null
     word_start = null
   }
