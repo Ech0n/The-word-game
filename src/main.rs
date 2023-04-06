@@ -21,7 +21,14 @@ struct Move{
     column: bool,
     num: usize,
 }
-
+fn calc_col(col : bool,i : usize,num:usize) -> usize
+{
+    num*((col )as usize)+(i * !col as usize)
+}
+fn calc_row(col : bool,i : usize,num:usize) -> usize
+{
+    i*col as usize+(num * (!col) as usize)
+}
 
 #[post("/word")]
 async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::Data<WordsDict> ) -> Result<HttpResponse, Error> {
@@ -42,25 +49,59 @@ async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::D
     //Doszlismy do poczatku wyrazu 
     // Teraz sie cofamy aby sprawdzic czy przed wyrazem znajduja sie juz jakies litery
     let mut j = i-1;
-    col = v.num*((v.column )as usize)+(j * !v.column as usize);
-    row = j*v.column as usize+(v.num * (!v.column) as usize);
+    col = calc_col(v.column,j,v.num);
+    row = calc_row(v.column,j,v.num);
     while j>0 &&  cells[col][row] != 0
     {
         println!("Cofamy sie!");
         temp.insert_str(0, &(cells[col][row] as char).to_string() );
         j-=1;
-        col = v.num*((v.column )as usize)+(j * !v.column as usize);
-        row = j*v.column as usize+(v.num * (!v.column) as usize);
+        col = calc_col(v.column,j,v.num);
+        row = calc_row(v.column,j,v.num);
     }
-    col = v.num*((v.column )as usize)+(i * !v.column as usize);
-    row = i*v.column as usize+(v.num * (!v.column) as usize);
+    col = calc_col(v.column,i,v.num);
+    row = calc_row(v.column,i,v.num);
     while i<15 && (v.letters[i] | cells[col][row])!= 0
     {
         temp.push((v.letters[i] | cells[col][row])  as char);
         cells[col][row] |= v.letters[i]; 
+
+        //Check if any word was created in other direction
+        if v.letters[i] != 0
+        {    
+            let mut new_word = String::new();
+            let mut k = 1;
+            let mut other_direction_col = calc_col(v.column,i,v.num-k);
+            let mut other_direction_row = calc_row(v.column,i,v.num-k);
+            while v.num >=k && cells[other_direction_col][other_direction_row] !=0
+            {
+                new_word.insert_str(0, &(cells[other_direction_col][other_direction_row] as char).to_string() );
+                k+=1;
+                other_direction_col = calc_col(v.column,i,v.num-k);
+                other_direction_row = calc_row(v.column,i,v.num-k);
+            }
+            new_word.push( v.letters[i] as char );
+            k = 1;
+            other_direction_col = calc_col(v.column,i,v.num-k);
+            other_direction_row = calc_row(v.column,i,v.num-k);
+            while v.num+k<15 && ( cells[other_direction_col][other_direction_row])!=0
+            {
+                new_word.push(cells[other_direction_col][other_direction_row] as char);
+                k+=1;
+                other_direction_col = calc_col(v.column,i,v.num+k);
+                other_direction_row = calc_row(v.column,i,v.num+k);
+            }
+            println!("New word in other direction: {}",new_word);
+            if new_word.len() > 1 && !wordsState.words.contains(&new_word)
+            {
+                return Ok(HttpResponse::Ok().body("{valid:false , which: ".to_string()+ &new_word+"}"));
+            }
+        }
+
+        //increment
         i+=1;
-        col = v.num*((v.column )as usize)+(i * !v.column as usize);
-        row = i*v.column as usize+(v.num * (!v.column) as usize);
+        col = calc_col(v.column,i,v.num);
+        row = calc_row(v.column,i,v.num);
     }
     
     println!("Nowe slowo: {}",temp);
