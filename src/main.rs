@@ -6,12 +6,6 @@ use std::io::Read;
 use std::io::BufReader;
 use std::fs::File;
 
-
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-
 struct BoardState{
     cells:Mutex<[[u8;15];15]>,
 }
@@ -30,7 +24,7 @@ struct Move{
 
 
 #[post("/word")]
-async fn word(req_body: String , data: web::Data<BoardState> ) -> Result<HttpResponse, Error> {
+async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::Data<WordsDict> ) -> Result<HttpResponse, Error> {
 
     let v: Move = serde_json::from_str(&req_body)?;
     let mut cells = data.cells.lock().unwrap();
@@ -70,8 +64,14 @@ async fn word(req_body: String , data: web::Data<BoardState> ) -> Result<HttpRes
     }
     
     println!("Nowe slowo: {}",temp);
-    // println!("{:?}",cells);
-    Ok(HttpResponse::Ok().body("Halo"))
+    if !wordsState.words.contains(&temp)
+    {
+        println!("Word does not exist {}, {}",temp, temp.len());
+        Ok(HttpResponse::Ok().body("{valid:false}"))
+    }else
+    {
+        Ok(HttpResponse::Ok().body("{valid:true}"))
+    }
 }
 
 
@@ -79,7 +79,7 @@ async fn word(req_body: String , data: web::Data<BoardState> ) -> Result<HttpRes
 async fn main() -> std::io::Result<()> {
     //open file containing words
     // In production its best to load a test file because a larga file might take a while to load
-    let f = File::open("A:\\Documents\\Projekty\\letteraki\\src\\production.txt")?;
+    let f = File::open("./src/test_words.txt")?;
     let mut reader = BufReader::new(f);
     let mut buffer: Vec<u8> = Vec::new();
     let mut words : Vec<String> = Vec::new();
@@ -88,7 +88,7 @@ async fn main() -> std::io::Result<()> {
     println!("Loading words!");
     for value in buffer {
         if value as char == '\n'{
-            words.push(tempstr);
+            words.push(tempstr.trim().to_string());
             tempstr = String::new();
         }else
         {
