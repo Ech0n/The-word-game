@@ -110,7 +110,7 @@ import axios from 'axios'
       letters:next_letters,
       column:incolumn,
       num:rowcolnum
-    }).then(response => {console.log(response)})
+    }).then(response => {console.log(response.data)})
     next_letters = next_letters.map(function () {return 0;})
     incolumn= null
     word_start = null

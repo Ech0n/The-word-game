@@ -1,10 +1,11 @@
 use actix_cors::Cors;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Error};
 use std::sync::Mutex;
-use serde::{Deserialize};
+use serde::{Deserialize,Serialize};
 use std::io::Read;
 use std::io::BufReader;
 use std::fs::File;
+use rand::Rng;
 
 struct BoardState{
     cells:Mutex<[[u8;15];15]>,
@@ -30,8 +31,16 @@ fn calc_row(col : bool,i : usize,num:usize) -> usize
     i*col as usize+(num * (!col) as usize)
 }
 
+#[derive(Serialize)]
+struct MoveResult{
+    valid: bool,
+    new_letters: [u8;7]
+}
+
+// Request requires to pass array that represents inserted row or column, bool that is set to true if array represents column and false if row, and numerical value that represents index of row/column of array
+// If word is correct new letters are send in response to client
 #[post("/word")]
-async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::Data<WordsDict> ) -> Result<HttpResponse, Error> {
+async fn word(req_body: String , data: web::Data<BoardState>, words_state: web::Data<WordsDict> ) -> Result<HttpResponse, Error> {
 
     let v: Move = serde_json::from_str(&req_body)?;
     let mut cells = data.cells.lock().unwrap();
@@ -40,6 +49,7 @@ async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::D
     let mut i = 0;
     let mut col:usize = 0;
     let mut row:usize = 0;
+    let mut letters_used:u8 = 0;
 
     // Sprawdzanie wyrazu cells[num*column as u8+(i * !column as u8)][i*column as u8+(num * !column as u8)]
     while v.letters[i] == 0 && i<15
@@ -53,7 +63,6 @@ async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::D
     row = calc_row(v.column,j,v.num);
     while j>0 &&  cells[col][row] != 0
     {
-        println!("Cofamy sie!");
         temp.insert_str(0, &(cells[col][row] as char).to_string() );
         j-=1;
         col = calc_col(v.column,j,v.num);
@@ -69,6 +78,7 @@ async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::D
         //Check if any word was created in other direction
         if v.letters[i] != 0
         {    
+            letters_used+=1;
             let mut new_word = String::new();
             let mut k = 1;
             let mut other_direction_col = calc_col(v.column,i,v.num-k);
@@ -92,27 +102,38 @@ async fn word(req_body: String , data: web::Data<BoardState>, wordsState: web::D
                 other_direction_row = calc_row(v.column,i,v.num+k);
             }
             println!("New word in other direction: {}",new_word);
-            if new_word.len() > 1 && !wordsState.words.contains(&new_word)
+            if new_word.len() > 1 && !words_state.words.contains(&new_word)
             {
-                return Ok(HttpResponse::Ok().body("{valid:false , which: ".to_string()+ &new_word+"}"));
+                return Ok(HttpResponse::Ok().body("{\"valid\":\"false\", \"which\": \"".to_string()+ &new_word+"\"}"));
             }
         }
 
-        //increment
+        //increment and update values
         i+=1;
         col = calc_col(v.column,i,v.num);
         row = calc_row(v.column,i,v.num);
     }
     
     println!("Nowe slowo: {}",temp);
-    if !wordsState.words.contains(&temp)
+    if !words_state.words.contains(&temp) 
     {
         println!("Word does not exist {}, {}",temp, temp.len());
-        Ok(HttpResponse::Ok().body("{valid:false}"))
-    }else
-    {
-        Ok(HttpResponse::Ok().body("{valid:true}"))
+        return Ok(HttpResponse::Ok().body("{\"valid\":\"false\"}"))
     }
+    let mut rng = rand::thread_rng();
+    let mut new_hand = [ 0 as u8 ; 7];
+    for n in 0..letters_used
+    {
+        new_hand[n as usize] = rng.gen_range(65..91);
+    }
+    let result =  MoveResult{
+        valid:true,
+        new_letters: new_hand,
+    };
+    let json_result = serde_json::to_string(&result)?;
+    //TODO: Implement returning random letters to client
+    Ok(HttpResponse::Ok().body(json_result))
+    
 }
 
 
