@@ -10,7 +10,7 @@ use rand::Rng;
 struct BoardState{
     cells:Mutex<[[u8;15];15]>,
 }
-
+//TODO : fix an error when adding word on the left-most column;
 //Todo : implement DAWG structure as its far more efective than simple word list
 struct WordsDict{
     words:Vec<String>,
@@ -35,6 +35,24 @@ fn calc_row(col : bool,i : usize,num:usize) -> usize
 struct MoveResult{
     valid: bool,
     new_letters: [u8;7]
+}
+
+#[get("/start_game")]
+async fn start_game() -> Result<HttpResponse, Error> {
+
+    let mut rng = rand::thread_rng();
+    let mut new_hand = [ 0 as u8 ; 7];
+    for n in 0..7
+    {
+        new_hand[n as usize] = rng.gen_range(65..91);
+    }
+    let result =  MoveResult{
+        valid:true,
+        new_letters: new_hand,
+    };
+    let json_result = serde_json::to_string(&result)?;
+    //TODO: Implement returning random letters to client
+    Ok(HttpResponse::Ok().body(json_result))
 }
 
 // Request requires to pass array that represents inserted row or column, bool that is set to true if array represents column and false if row, and numerical value that represents index of row/column of array
@@ -172,6 +190,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(words.clone())
             .wrap(cors)
             .service(word)
+            .service(start_game)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

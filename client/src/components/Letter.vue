@@ -1,12 +1,12 @@
 <script setup>
 import { setBlockTracking } from 'vue';
-import { getCurrentInstance, reactive } from 'vue'
+import { getCurrentInstance, reactive ,ref,onMounted} from 'vue'
 var self = getCurrentInstance()
 
 // import {  onMounted } from 'vue'
 const props = defineProps({
   value: {
-    type: String,
+    type: Number,
     required: true
   },
   random:{
@@ -17,13 +17,11 @@ const props = defineProps({
     type:Number
   }
 })
-const position = {
 
-}
 function move(e){
   // e.dataTransfer.setData('text/plain', e.target.id);
   e.dataTransfer.setData("text", JSON.stringify(props));
-  e.currentTarget.style.backgroundColor = 'black';
+  // e.currentTarget.style.backgroundColor = 'black';
   self.attrs.draggable = "false"
 }
 function dragy(e){
@@ -34,7 +32,7 @@ function dragy(e){
 
 <template>
   <div class="letter"  @dragstart="move" @drag="dragy"   >
-    {{ value }}
+    {{ String.fromCharCode(value) }}
   </div>
 </template>
 
