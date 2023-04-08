@@ -16,10 +16,10 @@ This project is in early stages of development!
 1. run command `cargo run` this should get automatically download all necesary liblaries for you.
 
 ### TODO:
-[x] Server recognizes words sent from client and stores them
-[x] Server finds all words that were created additionaly to the main one
-[x] Loading word list from file
-[] Client remake
-[] Words stored using DAWG
-[] Lobby creator
-[] Handling inputs of more than one users on a same board 
+- [x] Server recognizes words sent from client and stores them
+- [x] Server finds all words that were created additionaly to the main one
+- [x] Loading word list from file
+- [ ] Client remake
+- [ ] Words stored using DAWG
+- [ ] Lobby creator
+- [ ] Handling inputs of more than one users on a same board 
