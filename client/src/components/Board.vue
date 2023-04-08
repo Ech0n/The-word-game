@@ -1,20 +1,25 @@
+<!-- TODO:
+  Make parent component containing inventory and board
+  Parent component contains main logic that manages the game state
+  
+-->
 <script setup>
-import { createConditionalExpression } from '@vue/compiler-core';
-import Cell from './Cell.vue'
-import Letter from './Letter.vue'
-
-import { getCurrentInstance, reactive } from 'vue'
-import axios from 'axios'
+  import { createConditionalExpression } from '@vue/compiler-core';
+  import Letter from './Letter.vue'
+  import Inventory from './Inventory.vue'
+  import { getCurrentInstance, reactive,ref } from 'vue'
+  import axios from 'axios'
 
   var self = getCurrentInstance()
-  // self.store = reactive({
-  //   board:[]
-  // })
+//TODO
+// Remember letter slots and return them to their slots on reset
+
   const board = reactive( Array.apply(null, Array(15*15)).map(function () {return 0;}))
   var lastreadletter = ''
   var word_start = undefined
   var next_letters =  Array.apply(null, Array(15)).map(function () {return 0;})
   var incolumn = undefined
+  const invRef = ref(null)
 
   function drop(e){
     e.preventDefault();
@@ -24,7 +29,6 @@ import axios from 'axios'
     let i  = Number(e.target.getAttribute('col'))
     var j = Number(e.target.getAttribute('row'))
     let id =(i*15)+j
-    console.log(letter)
     board[id] = letter
     if(!word_start){
       word_start = [i,j,letter.charCodeAt(0)]
@@ -45,8 +49,9 @@ import axios from 'axios'
         next_letters[i] = letter.charCodeAt(0)
       }
     }
-    
+    console.log(invRef.value.pop_letter(original_slot))
   }
+
   function allowDrop(e){
     
     var data = e.dataTransfer.getData("text");
@@ -60,6 +65,7 @@ import axios from 'axios'
       console.log("drop prevented")
     }
   }
+
   function reset(e){
     if(incolumn==undefined&&word_start){
       board[(word_start[0]*15)+word_start[1]] = 0
@@ -131,7 +137,7 @@ import axios from 'axios'
   </div>
   <button @click="reset"> reset</button>
   <button @click="submit"> submit</button>
-
+  <Inventory ref="invRef"/>
 </template>
 
 

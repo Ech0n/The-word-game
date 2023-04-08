@@ -12,6 +12,7 @@ const props = defineProps({
   random:{
     type: Boolean,
   },
+  // TODO: Delete this (inv:) and implement referencing slots of inventory through list ref
   inv:{
     type:Number
   }
@@ -26,13 +27,6 @@ function move(e){
   self.attrs.draggable = "false"
 }
 function dragy(e){
-}
-
-function generate_lettr()
-{
-  const letter_count = 25
-  const letter_start= 65;
-  return String.fromCharCode(letter_start+Math.floor(Math.random()*letter_count))
 }
 
 

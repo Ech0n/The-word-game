@@ -1,7 +1,5 @@
 <script setup>
-import Board from './components/Board.vue'
-import Inventory from './components/Inventory.vue'
-
+import Board from './components/Board.vue';
 </script>
 
 <template>
@@ -11,7 +9,6 @@ import Inventory from './components/Inventory.vue'
 
   <main>
     <Board />
-    <Inventory/>
   </main>
 </template>
 
